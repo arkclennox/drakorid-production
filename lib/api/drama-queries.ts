@@ -1,5 +1,5 @@
-import { Drama, DramaGridItem } from '@/lib/firebase/schema';
-import { CollectionReference, Query, DocumentData } from 'firebase-admin/firestore';
+import { Drama, DramaGridItem } from '@/lib/supabase/schema';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 export const ITEMS_PER_PAGE = 28;
 
@@ -29,102 +29,95 @@ export async function fetchDramasWithPagination(
   const filters = { genre, country, rating, status, year };
   
   try {
-    // Import Firebase Admin here to avoid issues with server-side rendering
-    const { db } = await import('@/lib/firebase/admin');
+    const supabase = getSupabaseClient(false); // Use anon client for reading public data
     
-    const dramasCollection = db.collection('drama_korea');
+    // Build query - using basic columns that should exist
+    let queryBuilder = supabase
+      .from('korean_dramas')
+      .select('*', { count: 'exact' });
     
-    // Build query with proper typing
-    let baseQuery: Query<DocumentData> | CollectionReference<DocumentData> = dramasCollection;
+    // Apply text search if query exists
+    if (query) {
+      queryBuilder = queryBuilder.or(`title.ilike.%${query}%,overview.ilike.%${query}%`);
+    }
     
     // Apply filters
     if (filters.genre) {
-      baseQuery = (baseQuery as CollectionReference<DocumentData>).where('genres', 'array-contains', filters.genre);
+      queryBuilder = queryBuilder.ilike('genre', `%${filters.genre}%`);
     }
     if (filters.year) {
-      baseQuery = (baseQuery as Query<DocumentData>).where('year', '==', parseInt(filters.year));
+      queryBuilder = queryBuilder.eq('year', parseInt(filters.year));
     }
     if (filters.country) {
-      baseQuery = (baseQuery as Query<DocumentData>).where('country', '==', filters.country);
+      queryBuilder = queryBuilder.eq('country', filters.country);
     }
     if (filters.status) {
-      baseQuery = (baseQuery as Query<DocumentData>).where('status', '==', filters.status);
+      queryBuilder = queryBuilder.eq('status', filters.status);
     }
     if (filters.rating) {
       const ratingValue = parseFloat(filters.rating);
-      baseQuery = (baseQuery as Query<DocumentData>).where('rating', '>=', ratingValue);
-    }
-    
-    // Apply search filter if provided
-    if (query) {
-      // For simplicity, search in title field
-      // In production, you might want to use full-text search
-      baseQuery = (baseQuery as Query<DocumentData>)
-        .where('title', '>=', query)
-        .where('title', '<=', query + '\uf8ff');
+      queryBuilder = queryBuilder.gte('rating', ratingValue);
     }
     
     // Apply pagination
     const offset = (page - 1) * limit;
-    const querySnapshot = await (baseQuery as Query<DocumentData>)
-      .offset(offset)
-      .limit(limit + 1)
-      .get(); // Get one extra to check if there are more
+    queryBuilder = queryBuilder.range(offset, offset + limit - 1);
     
-    const dramas: DramaGridItem[] = [];
-    querySnapshot.forEach((doc: any) => {
-      const data = doc.data();
-      dramas.push({
-        id: doc.id,
-        title: data.title || '',
-        poster: data.poster || '',
-        year: data.year || 0,
-        rating: data.rating || 0,
-        country: data.country || '',
-        genre: data.genre || ''
-      });
-    });
+    const { data, error, count } = await queryBuilder;
     
-    // Check if there are more results by seeing if we got the extra item
-    const hasMore = querySnapshot.size > limit;
-    if (hasMore) {
-      dramas.pop(); // Remove the extra item
+    if (error) {
+      console.error('Supabase query error:', error);
+      throw new Error('Failed to fetch dramas');
     }
     
-    // Estimate total based on current page and whether there are more results
-    const estimatedTotal = hasMore ? (page * limit) + 1 : (page - 1) * limit + dramas.length;
+    const total = count || 0;
+    const totalPages = Math.ceil(total / limit);
+    
+    // Transform data to DramaGridItem format
+    const dramas: DramaGridItem[] = (data || []).map((item: any) => ({
+      id: item.id,
+      title: item.title || item.name || '',
+      poster: item.poster_path || item.poster || item.image || '',
+      year: item.year || item.release_year || 0,
+      rating: item.rating || item.vote_average || 0,
+      country: item.country || item.origin_country || '',
+      genre: item.genre || item.genres || '',
+      status: item.status || ''
+    }));
     
     return {
       dramas,
-      total: estimatedTotal,
+      total,
       page,
-      limit,
-      totalPages: hasMore ? page + 1 : page // Conservative estimate
+      totalPages,
+      limit
     };
   } catch (error) {
     console.error('Error fetching dramas:', error);
-    // Return empty result on error
-    return {
-      dramas: [],
-      total: 0,
-      page,
-      limit,
-      totalPages: 0
-    };
+    throw error;
   }
 }
 
 export async function estimateTotalDramas(query?: string): Promise<number> {
   try {
-    // Return a conservative estimate to avoid quota usage
-    // In a real app, you might cache this value or use collection group queries
+    const supabase = getSupabaseClient(false); // Use anon client for reading public data
+    
+    let queryBuilder = supabase
+      .from('korean_dramas')
+      .select('*', { count: 'exact', head: true });
+    
     if (query) {
-      // For search queries, return a smaller estimate
-      return 50;
+      queryBuilder = queryBuilder.or(`title.ilike.%${query}%,overview.ilike.%${query}%`);
     }
-    // For all dramas, return a reasonable estimate
-    // You can update this number based on your actual collection size
-    return 1000;
+    
+    const { count, error } = await queryBuilder;
+    
+    if (error) {
+      console.error('Error estimating total dramas:', error);
+      return 0;
+    }
+    
+    return count || 0;
   } catch (error) {
     console.error('Error estimating total dramas:', error);
     return 0;
@@ -133,46 +126,61 @@ export async function estimateTotalDramas(query?: string): Promise<number> {
 
 export async function fetchDramaById(id: string): Promise<Drama | null> {
   try {
-    // Import Firebase Admin here to avoid issues with server-side rendering
-    const { db } = await import('@/lib/firebase/admin');
+    const supabase = getSupabaseClient(false); // Use anon client for reading public data
     
-    const dramaDoc = await db.collection('drama_korea').doc(id).get();
+    const { data, error } = await supabase
+      .from('korean_dramas')
+      .select('*')
+      .eq('id', id)
+      .single();
     
-    if (!dramaDoc.exists) {
+    if (error || !data) {
+      console.error('Error fetching drama by ID:', error);
       return null;
     }
     
-    const data = dramaDoc.data();
-    
-    return {
-      id: dramaDoc.id,
-      title: data?.title || '',
-      poster: data?.poster || '',
-      backdrop_path: data?.backdrop_path,
-      overview: data?.overview || '',
-      release_date: data?.release_date || '',
-      year: data?.year || 0,
-      rating: data?.rating || 0,
-      vote_count: data?.vote_count,
-      genre: data?.genre || '',
-      country: data?.country || '',
-      duration: data?.duration || '',
-      status: data?.status || '',
-      episodes: data?.episodes || 0,
-      seasons: data?.seasons || []
+    // Transform Supabase data to Drama format
+    const drama: Drama = {
+      id: data.id,
+      title: data.title || '',
+      poster: data.poster_path || '',
+      overview: data.overview || '',
+      year: data.year || 0,
+      rating: data.rating || 0,
+      country: data.country || '',
+      genre: data.genre || '',
+      status: data.status || '',
+      release_date: data.release_date || '',
+      episodes: data.episodes || 0,
+      duration: data.duration || '',
+      director: data.director || '',
+      artis: data.artis || '',
+      direktur: data.direktur || '',
+      penulis: data.penulis || '',
+      cast: data.cast || [],
+      crew: data.crew || [],
+      videos: data.videos || [],
+      images: data.images || [],
+      seasons: data.seasons || [],
+      external_ids: data.external_ids || {},
+      keywords: data.keywords || [],
+      recommendations: data.recommendations || [],
+      language: data.language || '',
+      tags: data.tags || []
     };
+    
+    return drama;
   } catch (error) {
     console.error('Error fetching drama by ID:', error);
     return null;
   }
 }
 
-// Helper function to build search URL with parameters
 export function buildSearchUrl(searchParams: DramaSearchParams): string {
   const params = new URLSearchParams();
   
   Object.entries(searchParams).forEach(([key, value]) => {
-    if (value && value !== '') {
+    if (value !== undefined && value !== null && value !== '') {
       params.append(key, value.toString());
     }
   });

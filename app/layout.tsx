@@ -9,8 +9,58 @@ import { Search, SearchFallback } from '@/components/search';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Drama Collection — Next.js App Router',
-  description: 'Discover and explore amazing dramas from around the world.',
+  title: 'DraKorid - Korean Drama Collection & Discovery Platform',
+  description: 'Discover and explore the best Korean dramas. Browse by genre, year, and rating. Find your next favorite K-drama with detailed information and reviews.',
+  keywords: ['Korean drama', 'K-drama', 'Korean series', 'drama collection', 'Korean entertainment', 'drama discovery', 'Korean shows'],
+  authors: [{ name: 'DraKorid Team' }],
+  creator: 'DraKorid',
+  publisher: 'DraKorid',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://drakorid.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'DraKorid - Korean Drama Collection & Discovery Platform',
+    description: 'Discover and explore the best Korean dramas. Browse by genre, year, and rating. Find your next favorite K-drama with detailed information and reviews.',
+    url: 'https://drakorid.vercel.app',
+    siteName: 'DraKorid',
+    locale: 'en_US',
+    type: 'website',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'DraKorid - Korean Drama Discovery Platform',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DraKorid - Korean Drama Collection & Discovery Platform',
+    description: 'Discover and explore the best Korean dramas. Browse by genre, year, and rating.',
+    images: ['/og-image.jpg'],
+    creator: '@drakorid',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'your-google-verification-code',
+  },
 };
 
 export default function RootLayout({

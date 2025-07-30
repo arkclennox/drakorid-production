@@ -6,6 +6,7 @@ export interface SearchParams {
   pgs?: string;
   page?: string;
   isbn?: string;
+  genre?: string;
 }
 
 export function parseSearchParams(
@@ -19,6 +20,7 @@ export function parseSearchParams(
     pgs: Array.isArray(params.pgs) ? params.pgs[0] : params.pgs,
     page: typeof params.page === 'string' ? params.page : undefined,
     isbn: typeof params.isbn === 'string' ? params.isbn : undefined,
+    genre: typeof params.genre === 'string' ? params.genre : undefined,
   };
 }
 

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { CastMember } from '@/lib/firebase/schema';
+import { CastMember } from '@/lib/supabase/schema';
 import { UsersIcon } from 'lucide-react';
 
 /**

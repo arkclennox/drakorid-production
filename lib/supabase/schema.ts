@@ -1,4 +1,4 @@
-// Firebase Firestore schema types for drama data
+// Supabase database schema types for drama data
 
 // Cast member interface
 export interface CastMember {
@@ -100,6 +100,9 @@ export interface Drama {
   episodes?: number;
   duration?: string;
   director?: string;
+  artis?: string;
+  direktur?: string;
+  penulis?: string;
   cast?: CastMember[];
   crew?: CrewMember[];
   language?: string;

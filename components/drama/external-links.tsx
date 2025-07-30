@@ -1,4 +1,4 @@
-import { ExternalIds } from '@/lib/firebase/schema';
+import { ExternalIds } from '@/lib/supabase/schema';
 import { ExternalLinkIcon, FacebookIcon, InstagramIcon, TwitterIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

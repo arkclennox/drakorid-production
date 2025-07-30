@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Video } from '@/lib/firebase/schema';
+import { Video } from '@/lib/supabase/schema';
 import { PlayIcon, VideoIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { CrewMember } from '@/lib/firebase/schema';
+import { CrewMember } from '@/lib/supabase/schema';
 import { UserIcon } from 'lucide-react';
 
 /**

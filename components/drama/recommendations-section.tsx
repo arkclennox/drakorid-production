@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Drama } from '@/lib/firebase/schema';
+import { Drama } from '@/lib/supabase/schema';
 import { StarIcon, CalendarIcon, HeartIcon } from 'lucide-react';
 
 /**

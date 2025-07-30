@@ -13,6 +13,7 @@ import { fetchDramaById, fetchDramasWithPagination } from '@/lib/api/drama-queri
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 // Import new drama components
 import { CastSection } from '@/components/drama/cast-section';
 import { CrewSection } from '@/components/drama/crew-section';
@@ -41,11 +42,91 @@ function getCountryLabel(country: string): string {
 
 // Prerender the first page of dramas
 export async function generateStaticParams() {
-  const dramaResponse = await fetchDramasWithPagination({ page: 1, limit: 10 });
+  try {
+    // Check if environment variables are available
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.warn('Supabase environment variables not available during build, skipping static generation');
+      return [];
+    }
+    
+    const dramaResponse = await fetchDramasWithPagination({ page: 1, limit: 10 });
 
-  return dramaResponse.dramas.map((drama) => ({
-    id: drama.id.toString(),
-  }));
+    return dramaResponse.dramas.map((drama) => ({
+      id: drama.id.toString(),
+    }));
+  } catch (error) {
+    console.warn('Failed to generate static params, falling back to dynamic rendering:', error);
+    return [];
+  }
+}
+
+// Generate dynamic metadata for each drama page
+export async function generateMetadata(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+  
+  try {
+    const drama = await fetchDramaById(params.id);
+    
+    if (!drama) {
+      return {
+        title: 'Drama Not Found - DraKorid',
+        description: 'The requested Korean drama could not be found.',
+      };
+    }
+
+    const title = `${drama.title} (${drama.year}) - DraKorid`;
+    const description = drama.overview 
+      ? `${drama.overview.slice(0, 155)}...` 
+      : `Watch ${drama.title}, a ${drama.genre} Korean drama from ${drama.year}. Discover more K-dramas on DraKorid.`;
+
+    return {
+      title,
+      description,
+      keywords: [
+        drama.title,
+        'Korean drama',
+        'K-drama',
+        drama.genre,
+        drama.year?.toString(),
+        'Korean series',
+        'drama streaming',
+      ].filter(Boolean),
+      openGraph: {
+        title,
+        description,
+        type: 'video.tv_show',
+        url: `https://drakorid.vercel.app/${params.id}`,
+        siteName: 'DraKorid',
+        images: drama.poster ? [
+          {
+            url: drama.poster,
+            width: 500,
+            height: 750,
+            alt: `${drama.title} poster`,
+          },
+        ] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: drama.poster ? [drama.poster] : [],
+      },
+      alternates: {
+        canonical: `/${params.id}`,
+      },
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Drama Details - DraKorid',
+      description: 'Discover Korean dramas on DraKorid.',
+    };
+  }
 }
 
 export default async function Page(
@@ -118,7 +199,7 @@ export default async function Page(
           <div className="lg:col-span-1">
             <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-800 shadow-lg">
               <Image
-                src={drama.poster}
+                src={drama.poster || '/placeholder-poster.svg'}
                 alt={drama.title}
                 fill
                 className="object-cover"
@@ -186,331 +267,107 @@ export default async function Page(
                 </p>
               </div>
 
-              {/* Quick Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Detail */}
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Detail</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Genres */}
                 {drama.genre && (
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">Genres</h3>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                    <h3 className="text-sm font-semibold mb-2">Genres</h3>
                     <div className="flex flex-wrap gap-1">
-                      {drama.genre.split(',').slice(0, 3).map((genre, index) => (
+                      {(drama.genre || '').toString().split(',').slice(0, 3).map((genre, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200 rounded text-xs font-medium"
+                          className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-medium"
                         >
                           {genre.trim()}
                         </span>
                       ))}
-                      {drama.genre.split(',').length > 3 && (
-                        <span className="text-xs text-blue-600 dark:text-blue-400">+{drama.genre.split(',').length - 3}</span>
+                      {(drama.genre || '').toString().split(',').length > 3 && (
+                        <span className="text-xs text-muted-foreground">+{(drama.genre || '').toString().split(',').length - 3}</span>
                       )}
                     </div>
                   </div>
                 )}
 
-
-
-                {/* Episodes/Seasons */}
-                {((drama.seasons && drama.seasons.length > 0) || (drama.episodes && drama.episodes > 0)) && (
-                  <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <h3 className="text-sm font-semibold text-purple-800 dark:text-purple-200 mb-2">Series Info</h3>
+                {/* Artis */}
+                {drama.artis && (drama.artis || '').toString().trim() && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                    <h3 className="text-sm font-semibold mb-2">Artis</h3>
                     <div className="space-y-1">
-                      {drama.seasons && drama.seasons.length > 0 && (
-                        <div className="flex items-center text-sm">
-                          <TvIcon className="w-4 h-4 mr-1 text-purple-600 dark:text-purple-400" />
-                          <span className="text-purple-800 dark:text-purple-200">{drama.seasons.length} Seasons</span>
+                      {(drama.artis || '').toString().split(',').slice(0, 3).map((artist, index) => (
+                        <div key={index} className="text-sm font-medium">
+                          {artist.trim()}
                         </div>
-                      )}
-                      {drama.episodes && drama.episodes > 0 && (
-                        <div className="flex items-center text-sm">
-                          <PlayIcon className="w-4 h-4 mr-1 text-purple-600 dark:text-purple-400" />
-                          <span className="text-purple-800 dark:text-purple-200">{drama.episodes} Episodes</span>
-                        </div>
+                      ))}
+                      {(drama.artis || '').toString().split(',').length > 3 && (
+                        <div className="text-xs text-muted-foreground">+{(drama.artis || '').toString().split(',').length - 3} more</div>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* Language & Origin */}
-                {(drama.original_language || drama.origin_country) && (
-                  <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                    <h3 className="text-sm font-semibold text-orange-800 dark:text-orange-200 mb-2">Origin</h3>
+                {/* Direktur */}
+                {drama.direktur && (drama.direktur || '').toString().trim() && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                    <h3 className="text-sm font-semibold mb-2">Direktur</h3>
                     <div className="space-y-1">
-                      {drama.original_language && (
-                        <div className="text-sm text-orange-800 dark:text-orange-200">
-                          <span className="font-medium">Language:</span> {drama.original_language.toUpperCase()}
+                      {(drama.direktur || '').toString().split(',').slice(0, 2).map((director, index) => (
+                        <div key={index} className="text-sm font-medium">
+                          {director.trim()}
                         </div>
-                      )}
-                      {drama.origin_country && drama.origin_country.length > 0 && (
-                        <div className="text-sm text-orange-800 dark:text-orange-200">
-                          <span className="font-medium">Country:</span> {drama.origin_country[0].toUpperCase()}
-                        </div>
+                      ))}
+                      {(drama.direktur || '').toString().split(',').length > 2 && (
+                        <div className="text-xs text-muted-foreground">+{(drama.direktur || '').toString().split(',').length - 2} more</div>
                       )}
                     </div>
                   </div>
                 )}
+
+                {/* Penulis */}
+                {drama.penulis && (drama.penulis || '').toString().trim() && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                    <h3 className="text-sm font-semibold mb-2">Penulis</h3>
+                    <div className="space-y-1">
+                      {(drama.penulis || '').toString().split(',').slice(0, 2).map((writer, index) => (
+                        <div key={index} className="text-sm font-medium">
+                          {writer.trim()}
+                        </div>
+                      ))}
+                      {(drama.penulis || '').toString().split(',').length > 2 && (
+                        <div className="text-xs text-muted-foreground">+{(drama.penulis || '').toString().split(',').length - 2} more</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                </div>
               </div>
 
-              {/* Production Info Cards */}
-              {(drama.production_companies || drama.created_by) && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">Production</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {drama.production_companies && drama.production_companies.length > 0 && (
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
-                        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Production Companies</h3>
-                        <div className="space-y-2">
-                          {drama.production_companies.slice(0, 3).map((company: any, index: number) => (
-                            <div key={index} className="text-sm font-medium">
-                              {company.name}
-                            </div>
-                          ))}
-                          {drama.production_companies.length > 3 && (
-                            <div className="text-xs text-muted-foreground">+{drama.production_companies.length - 3} more</div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {drama.created_by && drama.created_by.length > 0 && (
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
-                        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Created By</h3>
-                        <div className="space-y-2">
-                          {drama.created_by.slice(0, 3).map((creator: any, index: number) => (
-                            <div key={index} className="text-sm font-medium">
-                              {creator.name}
-                            </div>
-                          ))}
-                          {drama.created_by.length > 3 && (
-                            <div className="text-xs text-muted-foreground">+{drama.created_by.length - 3} more</div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+              {/* Links Section */}
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Links</h2>
+                <div className="flex flex-wrap gap-3">
+                  <Button asChild variant="outline">
+                    <a href="https://www.profitableratecpm.com/jj42qjfx?key=66c652973a1081790d15cdcafc035b73" target="_blank" rel="noopener noreferrer">
+                      <GlobeIcon className="w-4 h-4 mr-2" />
+                      Link 1
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <a href="https://www.profitableratecpm.com/jj42qjfx?key=66c652973a1081790d15cdcafc035b73" target="_blank" rel="noopener noreferrer">
+                      <GlobeIcon className="w-4 h-4 mr-2" />
+                      Link 2
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <a href="https://www.profitableratecpm.com/jj42qjfx?key=66c652973a1081790d15cdcafc035b73" target="_blank" rel="noopener noreferrer">
+                      <GlobeIcon className="w-4 h-4 mr-2" />
+                      Link 3
+                    </a>
+                  </Button>
                 </div>
-              )}
-
-              {/* Cast Section */}
-              {drama.cast && drama.cast.length > 0 && (
-                <CastSection cast={drama.cast} />
-              )}
-
-              {/* Crew Section */}
-              {drama.crew && drama.crew.length > 0 && (
-                <CrewSection crew={drama.crew} />
-              )}
-
-              {/* Episodes Section */}
-              {drama.seasons && drama.seasons.length > 0 && (
-                <EpisodesSection seasons={drama.seasons} />
-              )}
-
-              {/* Videos Section */}
-              {drama.videos && drama.videos.length > 0 && (
-                <VideosSection videos={drama.videos} />
-              )}
-
-              {/* Images Gallery */}
-              {drama.images && (
-                <ImagesGallery images={drama.images} />
-              )}
-
-              {/* Keywords Section */}
-              {drama.keywords && drama.keywords.length > 0 && (
-                <KeywordsSection keywords={drama.keywords} />
-              )}
-
-              {/* External Links */}
-              {(drama.external_ids || drama.homepage) && (
-                <ExternalLinks 
-                  externalIds={drama.external_ids || {}} 
-                  homepage={drama.homepage}
-                />
-              )}
-
-              {/* Recommendations Section */}
-              {drama.recommendations && drama.recommendations.length > 0 && (
-                <RecommendationsSection recommendations={drama.recommendations} />
-              )}
-
-              {/* Series Information */}
-              {((drama.seasons && drama.seasons.length > 0) || (drama.episodes && drama.episodes > 0) || drama.status) && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">Series Information</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {drama.status && (
-                      <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">Status</p>
-                        <span className="px-4 py-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-medium">
-                          {drama.status}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Genres */}
-                     {drama.genre && (
-                       <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                         <p className="text-sm text-muted-foreground mb-2">Genres</p>
-                         <div className="flex flex-wrap justify-center gap-1">
-                           {drama.genre.split(',').slice(0, 3).map((genre: string, index: number) => (
-                             <span
-                               key={index}
-                               className="px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-xs font-medium"
-                             >
-                               {genre.trim()}
-                             </span>
-                           ))}
-                           {drama.genre.split(',').length > 3 && (
-                             <span className="text-xs text-muted-foreground">+{drama.genre.split(',').length - 3}</span>
-                           )}
-                         </div>
-                       </div>
-                     )}
-
-                    {/* Crew */}
-                    {drama.crew && drama.crew.length > 0 && (
-                      <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">Key Crew</p>
-                        <div className="space-y-1">
-                          {drama.crew.filter((member: any) => ['Director', 'Producer', 'Writer'].includes(member.job)).slice(0, 3).map((member: any, index: number) => (
-                            <div key={index} className="text-sm">
-                              <span className="font-medium">{member.name}</span>
-                              <span className="text-muted-foreground text-xs block">{member.job}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {drama.seasons && drama.seasons.length > 0 && (
-                      <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">Seasons</p>
-                        <div className="flex items-center justify-center text-lg font-semibold">
-                          <TvIcon className="w-5 h-5 mr-2" />
-                          <span>{drama.seasons.length}</span>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {drama.episodes && drama.episodes > 0 && (
-                      <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">Episodes</p>
-                        <div className="flex items-center justify-center text-lg font-semibold">
-                          <PlayIcon className="w-5 h-5 mr-2" />
-                          <span>{drama.episodes}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Production Information */}
-              {(drama.production_companies || drama.created_by) && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">Production Information</h2>
-                  <div className="space-y-4">
-                    {drama.production_companies && drama.production_companies.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-medium mb-2">Production Companies</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {drama.production_companies.map((company: any, index: number) => (
-                            <span
-                              key={index}
-                              className="px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-sm"
-                            >
-                              {company.name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-
-                    
-                    {drama.created_by && drama.created_by.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-medium mb-2">Created By</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {drama.created_by.map((creator: any, index: number) => (
-                            <span
-                              key={index}
-                              className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm"
-                            >
-                              {creator.name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Language & Origin Information */}
-              {(drama.languages || drama.origin_country || drama.original_language) && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">Language & Origin</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {drama.original_language && (
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">Original Language</p>
-                        <p className="font-medium">{drama.original_language.toUpperCase()}</p>
-                      </div>
-                    )}
-                    
-                    {drama.languages && drama.languages.length > 0 && (
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">Spoken Languages</p>
-                        <div className="flex flex-wrap gap-1">
-                          {drama.languages.map((lang: string, index: number) => (
-                            <span key={index} className="text-sm font-medium">
-                              {lang.toUpperCase()}{index < drama.languages!.length - 1 && ', '}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {drama.origin_country && drama.origin_country.length > 0 && (
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">Origin Countries</p>
-                        <div className="flex flex-wrap gap-1">
-                          {drama.origin_country.map((country: string, index: number) => (
-                            <span key={index} className="text-sm font-medium">
-                              {country.toUpperCase()}{index < drama.origin_country!.length - 1 && ', '}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Additional Details */}
-              {(drama.adult !== undefined || drama.homepage) && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">Additional Details</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {drama.adult !== undefined && (
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">Content Rating</p>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          drama.adult 
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                            : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        }`}>
-                          {drama.adult ? 'Adult Content' : 'General Audience'}
-                        </span>
-                      </div>
-                    )}
-                    
-
-                  </div>
-                </div>
-              )}
+              </div>
 
 
 

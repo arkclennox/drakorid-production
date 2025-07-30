@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { DramaGridItem } from '@/lib/firebase/schema';
+import { DramaGridItem } from '@/lib/supabase/schema';
 import { SearchParams, stringifySearchParams } from '@/lib/url-state';
 import Image from 'next/image';
 

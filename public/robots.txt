@@ -1,0 +1,14 @@
+# Robots.txt for DraKorid - Korean Drama Discovery Platform
+# https://drakorid.vercel.app
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://drakorid.vercel.app/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Allow all search engines to index the site
+# No restrictions on crawling

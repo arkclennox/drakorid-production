@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Images, ImageData } from '@/lib/firebase/schema';
+import { Images, ImageData } from '@/lib/supabase/schema';
 import { ImageIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

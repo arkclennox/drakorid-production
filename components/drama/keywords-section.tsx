@@ -1,4 +1,4 @@
-import { Keyword } from '@/lib/firebase/schema';
+import { Keyword } from '@/lib/supabase/schema';
 import { TagIcon } from 'lucide-react';
 
 /**

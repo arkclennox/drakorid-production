@@ -20,7 +20,10 @@ export default async function Page(
   const dramaSearchParams = {
     query: parsedSearchParams.search,
     page: Number(parsedSearchParams.page) || 1,
-    limit: ITEMS_PER_PAGE
+    limit: ITEMS_PER_PAGE,
+    genre: parsedSearchParams.genre,
+    rating: parsedSearchParams.rtg,
+    year: parsedSearchParams.yr
   };
 
   const [dramaResponse, estimatedTotal] = await Promise.all([

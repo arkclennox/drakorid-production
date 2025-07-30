@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Season, Episode } from '@/lib/firebase/schema';
+import { Season, Episode } from '@/lib/supabase/schema';
 import { ChevronDownIcon, ChevronRightIcon, CalendarIcon, StarIcon, TvIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
