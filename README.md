@@ -1,87 +1,95 @@
-# Drakorid Project
+# DraKorid - Korean Drama Discovery Platform
 
-This is a drama discovery app built with Next.js and Supabase. The app allows users to search and explore Korean dramas with detailed information.
+A modern, responsive web application built with Next.js 14 for discovering and exploring Korean dramas. Browse through an extensive collection of K-dramas with advanced filtering, search functionality, and detailed information about each drama.
 
-## Supabase Setup
+## ✨ Features
 
-This project uses Supabase as the primary database. Make sure you have:
+### 🎭 Drama Discovery
+- **Extensive Collection**: Browse through a comprehensive database of Korean dramas
+- **Advanced Search**: Search dramas by title with real-time results
+- **Smart Filtering**: Filter by genre, year, rating, and more
+- **Detailed Information**: View comprehensive details including cast, crew, episodes, and more
 
-1. A Supabase project created at [Supabase Console](https://supabase.com/dashboard)
-2. Database tables set up in your Supabase project
-3. Environment variables configured for both local development and production
-4. For production deployment: Set environment variables (see Deployment section)
-4. A table named `korean_dramas` with your drama data
+### 🎨 User Experience
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **Modern UI**: Clean, intuitive interface with smooth animations
+- **Fast Performance**: Optimized loading with image lazy loading and caching
+- **Dark/Light Mode**: Automatic theme detection based on system preferences
 
-## Getting Started
+### 🔍 SEO Optimized
+- **Dynamic Meta Tags**: Automatic SEO optimization for each drama page
+- **Open Graph Support**: Rich social media previews
+- **Sitemap Generation**: Automatic sitemap for search engines
+- **Structured Data**: Enhanced search engine understanding
 
-1. Clone the repository and install dependencies:
+## 🚀 Tech Stack
 
-```bash
-npm install
-```
+- **Framework**: [Next.js 14](https://nextjs.org/) with App Router
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Database**: [Supabase](https://supabase.com/)
+- **UI Components**: [Radix UI](https://www.radix-ui.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Deployment**: [Vercel](https://vercel.com/)
 
-2. Set up environment variables:
-   - Copy `.env.example` to `.env.local`
-   - Add your Supabase project URL and API keys
-   - Place your service account key in `credentials/serviceAccountKey.json`
+## 📦 Installation
 
-3. Run the development server:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/arkclennox/drakorid-production.git
+   cd drakorid-production
+   ```
 
-```bash
-npm run dev
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Fill in your Supabase credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   ```
 
-## Deployment
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
 
-### Vercel Deployment
+5. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-1. Deploy to Vercel using the [Vercel Platform](https://vercel.com/new)
+## 🗄️ Database Setup
 
-2. Set the following environment variables in your Vercel project settings:
-   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous/public key
-- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key (for server-side operations)
+This project uses Supabase as the database. You'll need to:
 
-3. The application will automatically use environment variables in production and the local service account file in development.
+1. Create a new Supabase project
+2. Set up the `korean_dramas` table with the schema defined in `lib/supabase/schema.ts`
+3. Populate the table with drama data
+4. Configure Row Level Security (RLS) policies as needed
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## 🚀 Deployment
 
-## Features
+### Vercel (Recommended)
 
-- Search Korean dramas by title
-- Browse drama details including cast, crew, and episodes
-- Responsive design with modern UI
-- Real-time data from Supabase PostgreSQL database
+1. **Connect your GitHub repository to Vercel**
+2. **Set environment variables in Vercel dashboard**
+3. **Deploy automatically on every push to main branch**
 
-## Project Structure
+### Environment Variables for Production
 
-```
-├── app/                    # Next.js 13+ app directory
-│   ├── [id]/              # Dynamic drama detail pages
-│   ├── api/               # API routes
-│   └── globals.css        # Global styles
-├── components/            # Reusable UI components
-│   ├── drama/             # Drama-specific components
-│   └── ui/                # Generic UI components
-├── lib/                   # Utility functions and configurations
-│   ├── api/               # API query functions
-│   ├── supabase/          # Supabase configuration
-│   └── utils.ts           # Utility functions
+Make sure to set these in your deployment platform:
 
-└── .env.example          # Environment variables template
-```
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (optional, for admin operations)
 
-## Learn More
+---
 
-To learn more about the technologies used:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API
-- [Supabase Documentation](https://supabase.com/docs) - learn about Supabase PostgreSQL database
-- [Tailwind CSS](https://tailwindcss.com/docs) - utility-first CSS framework
-- [Radix UI](https://www.radix-ui.com/) - low-level UI primitives
-
-## Deploy on Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/drakorid-project)
+**Made with ❤️ for Korean Drama fans worldwide**
