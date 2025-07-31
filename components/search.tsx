@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { SearchIcon } from 'lucide-react';
+import { SearchIcon, Home } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useDebounce } from '@/lib/use-debounce';
@@ -56,6 +56,7 @@ function SearchBase({ initialQuery }: { initialQuery: string }) {
         className="w-full border-0 px-10 py-6 text-base md:text-sm overflow-hidden focus-visible:ring-0"
       />
       <LoadingSpinner isLoading={isLoading} />
+      <HomeButton />
     </div>
   );
 }
@@ -65,7 +66,7 @@ function LoadingSpinner({ isLoading }: { isLoading: boolean }) {
   return (
     <div
       data-pending={isLoading ? '' : undefined}
-      className="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity duration-300"
+      className="absolute right-12 top-1/2 -translate-y-1/2 transition-opacity duration-300"
     >
       <svg className="h-5 w-5" viewBox="0 0 100 100">
         <circle
@@ -82,6 +83,25 @@ function LoadingSpinner({ isLoading }: { isLoading: boolean }) {
         />
       </svg>
     </div>
+  );
+}
+
+function HomeButton() {
+  const router = useRouter();
+  
+  const handleHomeClick = () => {
+    router.push('/');
+  };
+
+  return (
+    <button
+      onClick={handleHomeClick}
+      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-muted transition-colors duration-200"
+      title="Go to Home"
+      aria-label="Go to Home"
+    >
+      <Home className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+    </button>
   );
 }
 
