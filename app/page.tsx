@@ -1,20 +1,18 @@
-import { Suspense } from 'react';
-import { DramasGrid } from '@/components/grid';
-import { DramaPagination } from '@/components/book-pagination';
-import {
-  estimateTotalDramas,
-  fetchDramasWithPagination,
-  ITEMS_PER_PAGE,
-} from '@/lib/api/drama-queries';
-import { parseSearchParams } from '@/lib/url-state';
+'use client'
 
-export default async function Page(
-  props: {
-    searchParams: Promise<Record<string, string | string[] | undefined>>;
-  }
-) {
-  const searchParams = await props.searchParams;
-  const parsedSearchParams = parseSearchParams(searchParams);
+import { Suspense } from 'react'
+import { DramasGridClient } from '@/components/grid-client'
+import { PaginationClient } from '@/components/pagination-client'
+import { FiltersClient } from '@/components/filters-client'
+import { SearchClient } from '@/components/search-client'
+import { ITEMS_PER_PAGE } from '@/lib/api/drama-queries'
+import { parseSearchParams } from '@/lib/url-state'
+import { useSearchParams } from 'next/navigation'
+
+export default function Page() {
+  const urlSearchParams = useSearchParams()
+  const searchParamsObj = Object.fromEntries(urlSearchParams.entries())
+  const parsedSearchParams = parseSearchParams(searchParamsObj)
 
   // Convert SearchParams to DramaSearchParams
   const dramaSearchParams = {
@@ -24,33 +22,36 @@ export default async function Page(
     genre: parsedSearchParams.genre,
     rating: parsedSearchParams.rtg,
     year: parsedSearchParams.yr
-  };
-
-  const [dramaResponse, estimatedTotal] = await Promise.all([
-    fetchDramasWithPagination(dramaSearchParams),
-    estimateTotalDramas(parsedSearchParams.search),
-  ]);
-
-  const totalPages = Math.ceil(estimatedTotal / ITEMS_PER_PAGE);
-  const currentPage = Math.max(1, Number(parsedSearchParams.page) || 1);
+  }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-grow overflow-auto min-h-[200px]">
-        <div className="group-has-[[data-pending]]:animate-pulse p-4">
-          <DramasGrid dramas={dramaResponse.dramas} searchParams={parsedSearchParams} />
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Korean Dramas</h1>
+        <p className="text-muted-foreground">
+          Discover amazing Korean dramas with real-time updates
+        </p>
       </div>
-      <div className="mt-auto p-4 border-t">
-        <Suspense fallback={null}>
-          <DramaPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalResults={estimatedTotal}
-            searchParams={parsedSearchParams}
-          />
-        </Suspense>
+      
+      {/* Search and Filters */}
+      <div className="mb-6 space-y-4">
+        <SearchClient />
+        <FiltersClient />
       </div>
+      
+      {/* Drama Grid with Real-time Updates */}
+      <Suspense fallback={<div>Loading dramas...</div>}>
+        <DramasGridClient 
+          searchParams={parsedSearchParams} 
+          dramaSearchParams={dramaSearchParams}
+        />
+      </Suspense>
+      
+      {/* Pagination */}
+      <PaginationClient
+        searchParams={parsedSearchParams}
+        dramaSearchParams={dramaSearchParams}
+      />
     </div>
-  );
+  )
 }
