@@ -5,6 +5,7 @@ import { DramasGridClient } from '@/components/grid-client'
 import { PaginationClient } from '@/components/pagination-client'
 import { FiltersClient } from '@/components/filters-client'
 import { SearchClient } from '@/components/search-client'
+
 import { ITEMS_PER_PAGE } from '@/lib/api/drama-queries'
 import { parseSearchParams } from '@/lib/url-state'
 import { useSearchParams } from 'next/navigation'
@@ -33,10 +34,18 @@ export default function Page() {
         </p>
       </div>
       
-      {/* Search and Filters */}
-      <div className="mb-6 space-y-4">
-        <SearchClient />
-        <FiltersClient />
+      {/* Search */}
+      <div className="mb-6">
+        <Suspense fallback={<div>Loading search...</div>}>
+          <SearchClient />
+        </Suspense>
+      </div>
+      
+      {/* Filters */}
+      <div className="mb-6">
+        <Suspense fallback={<div>Loading filters...</div>}>
+          <FiltersClient />
+        </Suspense>
       </div>
       
       {/* Drama Grid with Real-time Updates */}

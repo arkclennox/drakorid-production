@@ -6,80 +6,79 @@ import { supabaseBrowser } from '@/lib/supabase/client-browser'
 import { DramaSearchParams, DramaSearchResponse } from '@/lib/api/drama-queries'
 import { Drama, DramaGridItem } from '@/lib/supabase/schema'
 
+// Removed mock data - using real Supabase data now
+
 // Fetcher function for SWR
 const fetchDramas = async (params: DramaSearchParams): Promise<DramaSearchResponse> => {
   const { query = '', page = 1, limit = 28, genre, country, rating, status, year } = params
   
   try {
-    // Build query
-    let queryBuilder = supabaseBrowser
-      .from('korean_dramas')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-    
-    // Apply search filter
-    if (query) {
-      queryBuilder = queryBuilder.ilike('title', `%${query}%`)
-    }
-    
-    // Apply filters
-    if (genre) {
-      queryBuilder = queryBuilder.ilike('genre', `%${genre}%`)
-    }
-    if (country) {
-      queryBuilder = queryBuilder.ilike('country', `%${country}%`)
-    }
-    if (rating) {
-      const ratingNum = parseFloat(rating)
-      queryBuilder = queryBuilder.gte('rating', ratingNum)
-    }
-    if (status) {
-      queryBuilder = queryBuilder.ilike('status', `%${status}%`)
-    }
-    if (year) {
-      queryBuilder = queryBuilder.eq('year', parseInt(year))
-    }
-    
-    // Apply pagination
-    const from = (page - 1) * limit
-    const to = from + limit - 1
-    queryBuilder = queryBuilder.range(from, to)
-    
-    const { data, error, count } = await queryBuilder
-    
-    if (error) {
-      console.error('Supabase query error:', error)
-      throw new Error('Failed to fetch dramas')
-    }
-    
-    const total = count || 0
-    const totalPages = Math.ceil(total / limit)
-    
-    // Transform data to DramaGridItem format
-    const dramas: DramaGridItem[] = (data || []).map((item: any) => ({
-      id: item.id,
-      title: item.title || 'Unknown Title',
-      year: item.year || new Date().getFullYear(),
-      poster: item.poster_url || item.poster || '/placeholder-poster.jpg',
-      rating: item.rating || 0,
-      genre: item.genre || 'Unknown',
-      country: item.country || 'Unknown'
-    }))
-    
-    return {
-      dramas,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalResults: total,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching dramas:', error)
-    throw error
-  }
+     // Build query
+     let queryBuilder = supabaseBrowser
+       .from('korean_dramas')
+       .select('*', { count: 'exact' })
+       .order('created_at', { ascending: false })
+     
+     // Apply search filter
+     if (query) {
+       queryBuilder = queryBuilder.ilike('title', `%${query}%`)
+     }
+     
+     // Apply filters
+     if (genre) {
+       queryBuilder = queryBuilder.ilike('genre', `%${genre}%`)
+     }
+     if (country) {
+       queryBuilder = queryBuilder.ilike('country', `%${country}%`)
+     }
+     if (rating) {
+       const ratingNum = parseFloat(rating)
+       queryBuilder = queryBuilder.gte('rating', ratingNum)
+     }
+     if (status) {
+       queryBuilder = queryBuilder.ilike('status', `%${status}%`)
+     }
+     if (year) {
+       queryBuilder = queryBuilder.eq('year', parseInt(year))
+     }
+     
+     // Apply pagination
+     const from = (page - 1) * limit
+     const to = from + limit - 1
+     queryBuilder = queryBuilder.range(from, to)
+     
+     const { data, error, count } = await queryBuilder
+     
+     if (error) {
+       console.error('Supabase query error:', error)
+       throw new Error('Failed to fetch dramas')
+     }
+     
+     const total = count || 0
+     const totalPages = Math.ceil(total / limit)
+     
+     // Transform data to DramaGridItem format
+     const dramas: DramaGridItem[] = (data || []).map((item: any) => ({
+       id: item.id,
+       title: item.title || 'Unknown Title',
+       year: item.year || new Date().getFullYear(),
+       poster: item.poster_path || item.poster_url || item.poster || '/placeholder-poster.jpg',
+       rating: item.rating || 0,
+       genre: item.genre || 'Unknown',
+       country: item.country || 'Unknown'
+     }))
+     
+     return {
+       dramas,
+       total,
+       page,
+       totalPages,
+       limit
+     }
+   } catch (error) {
+     console.error('Error fetching dramas:', error)
+     throw error
+   }
 }
 
 // Hook for fetching dramas with real-time updates
@@ -134,6 +133,7 @@ export function useDrama(id: string) {
   const { data, error, isLoading, mutate } = useSWR(
     ['drama', id],
     async () => {
+      // Original Supabase code - now active
       const { data, error } = await supabaseBrowser
         .from('korean_dramas')
         .select('*')
@@ -149,7 +149,7 @@ export function useDrama(id: string) {
         id: data.id,
         title: data.title || 'Unknown Title',
         year: data.year || new Date().getFullYear(),
-        poster: data.poster_url || data.poster || '/placeholder-poster.jpg',
+        poster: data.poster_path || data.poster_url || data.poster || '/placeholder-poster.jpg',
         rating: data.rating || 0,
         country: data.country || 'Unknown',
         genre: data.genre || 'Unknown',
@@ -170,7 +170,6 @@ export function useDrama(id: string) {
         images: data.images,
         seasons: data.seasons,
         keywords: data.keywords,
-        external_ids: data.external_ids,
         recommendations: data.recommendations,
         backdrop_path: data.backdrop_path,
         original_title: data.original_title,

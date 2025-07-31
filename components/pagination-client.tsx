@@ -32,8 +32,7 @@ export function PaginationClient({ searchParams, dramaSearchParams }: Pagination
     )
   }
 
-  const { pagination } = data
-  const { currentPage, totalPages, totalResults } = pagination
+  const { page: currentPage, totalPages, total: totalResults } = data
 
   if (totalPages <= 1) {
     return null

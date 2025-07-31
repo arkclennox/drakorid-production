@@ -12,6 +12,17 @@ interface DramasGridClientProps {
   dramaSearchParams: DramaSearchParams
 }
 
+// Function to create slug from title
+function createSlug(title: string, id: string): string {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .trim()
+  return `sinopsis-${slug}-${id}`
+}
+
 export function DramasGridClient({ searchParams, dramaSearchParams }: DramasGridClientProps) {
   const { data, error, isLoading } = useDramas(dramaSearchParams)
 
@@ -58,7 +69,8 @@ export function DramasGridClient({ searchParams, dramaSearchParams }: DramasGrid
   return (
     <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
       {dramas.map((drama) => {
-        const href = `/${drama.id}?${stringifySearchParams(searchParams)}`
+        const slug = createSlug(drama.title, drama.id)
+        const href = `/${slug}?${stringifySearchParams(searchParams)}`
         
         return (
           <Link key={drama.id} href={href} className="group">
