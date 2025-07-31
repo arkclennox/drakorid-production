@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Filter, FilterFallback } from '@/components/filters';
 import { Search, SearchFallback } from '@/components/search';
+import { Footer } from '@/components/footer';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
@@ -117,6 +118,7 @@ export default function RootLayout({
               </div>
             </div>
             <div className="flex-1 flex flex-col p-4">{children}</div>
+            <Footer />
           </div>
         </div>
         <Toaster closeButton />
