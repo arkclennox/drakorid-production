@@ -9,4 +9,7 @@ export const supabaseBrowser = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+// Export Database type for use in other components
+export type { Database }
+
 export default supabaseBrowser

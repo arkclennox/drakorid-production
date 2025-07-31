@@ -129,7 +129,7 @@ export function DramaDetailClient({ id, searchParams }: DramaDetailClientProps) 
           <div className="sticky top-8">
             <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-muted">
               <Image
-                src={drama.poster_url || '/placeholder-poster.jpg'}
+                src={drama.poster || '/placeholder-poster.jpg'}
                 alt={drama.title}
                 fill
                 className="object-cover"

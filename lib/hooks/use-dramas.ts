@@ -4,7 +4,7 @@ import useSWR from 'swr'
 import { useEffect } from 'react'
 import { supabaseBrowser } from '@/lib/supabase/client-browser'
 import { DramaSearchParams, DramaSearchResponse } from '@/lib/api/drama-queries'
-import { Drama } from '@/lib/supabase/schema'
+import { Drama, DramaGridItem } from '@/lib/supabase/schema'
 
 // Fetcher function for SWR
 const fetchDramas = async (params: DramaSearchParams): Promise<DramaSearchResponse> => {
@@ -56,15 +56,14 @@ const fetchDramas = async (params: DramaSearchParams): Promise<DramaSearchRespon
     const totalPages = Math.ceil(total / limit)
     
     // Transform data to DramaGridItem format
-    const dramas = (data || []).map((item: any) => ({
+    const dramas: DramaGridItem[] = (data || []).map((item: any) => ({
       id: item.id,
       title: item.title || 'Unknown Title',
       year: item.year || new Date().getFullYear(),
-      poster_url: item.poster_url || '/placeholder-poster.jpg',
+      poster: item.poster_url || item.poster || '/placeholder-poster.jpg',
       rating: item.rating || 0,
       genre: item.genre || 'Unknown',
-      country: item.country || 'Unknown',
-      status: item.status || 'Unknown'
+      country: item.country || 'Unknown'
     }))
     
     return {
@@ -146,7 +145,50 @@ export function useDrama(id: string) {
         throw error
       }
       
-      return data as Drama
+      const drama: Drama = {
+        id: data.id,
+        title: data.title || 'Unknown Title',
+        year: data.year || new Date().getFullYear(),
+        poster: data.poster_url || data.poster || '/placeholder-poster.jpg',
+        rating: data.rating || 0,
+        country: data.country || 'Unknown',
+        genre: data.genre || 'Unknown',
+        overview: data.overview || '',
+        status: data.status || 'Unknown',
+        release_date: data.release_date,
+        episodes: data.episodes,
+        duration: data.duration,
+        director: data.director,
+        artis: data.artis,
+        direktur: data.direktur,
+        penulis: data.penulis,
+        cast: data.cast,
+        crew: data.crew,
+        language: data.language,
+        tags: data.tags,
+        videos: data.videos,
+        images: data.images,
+        seasons: data.seasons,
+        keywords: data.keywords,
+        external_ids: data.external_ids,
+        recommendations: data.recommendations,
+        backdrop_path: data.backdrop_path,
+        original_title: data.original_title,
+        original_language: data.original_language,
+        popularity: data.popularity,
+        vote_count: data.vote_count,
+        adult: data.adult,
+        homepage: data.homepage,
+        tagline: data.tagline,
+        production_companies: data.production_companies,
+        production_countries: data.production_countries,
+        spoken_languages: data.spoken_languages,
+        created_by: data.created_by,
+        languages: data.languages,
+        origin_country: data.origin_country
+      }
+      
+      return drama
     },
     {
       revalidateOnFocus: true,

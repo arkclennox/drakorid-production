@@ -17,7 +17,7 @@ export default function Page({
 
   return (
     <DramaDetailClient 
-      dramaId={params.id} 
+      id={params.id} 
       searchParams={parsedSearchParams}
     />
   )
