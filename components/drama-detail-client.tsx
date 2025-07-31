@@ -211,12 +211,16 @@ export function DramaDetailClient({ id, searchParams }: DramaDetailClientProps) 
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <Button size="lg" className="flex-1">
-              <PlayIcon className="w-4 h-4 mr-2" />
-              Watch Now
+            <Button size="lg" className="flex-1" asChild>
+              <Link href="https://www.ini-link-contoh.com" target="_blank" rel="noopener noreferrer">
+                <PlayIcon className="w-4 h-4 mr-2" />
+                Watch Now
+              </Link>
             </Button>
-            <Button variant="outline" size="lg">
-              Add to Watchlist
+            <Button variant="outline" size="lg" asChild>
+              <Link href="https://www.ini-link-contoh.com" target="_blank" rel="noopener noreferrer">
+                Add to Watchlist
+              </Link>
             </Button>
           </div>
         </div>
@@ -260,7 +264,7 @@ export function DramaDetailClient({ id, searchParams }: DramaDetailClientProps) 
           )}
 
           {/* Recommendations */}
-          <RecommendationsSection id={drama.id} />
+          <RecommendationsSection recommendations={[]} />
       </div>
     </div>
   )

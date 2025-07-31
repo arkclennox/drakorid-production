@@ -78,7 +78,7 @@ export function FiltersClient() {
   const updateFilter = (key: string, value: string) => {
     const newParams = updateSearchParams(searchParams, {
       [key]: value === 'all' ? undefined : value,
-      page: 1 // Reset to first page when filtering
+      page: '1' // Reset to first page when filtering
     })
     router.push(`/?${newParams}`)
   }
@@ -89,7 +89,7 @@ export function FiltersClient() {
       genre: undefined,
       year: undefined,
       sort: undefined,
-      page: 1
+      page: '1'
     })
     router.push(`/?${newParams}`)
   }

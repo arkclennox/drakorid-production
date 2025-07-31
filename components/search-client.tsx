@@ -20,7 +20,7 @@ export function SearchClient() {
     e.preventDefault()
     const newParams = updateSearchParams(searchParams, {
       search: searchTerm || undefined,
-      page: 1 // Reset to first page when searching
+      page: '1' // Reset to first page when searching
     })
     router.push(`/?${newParams}`)
   }
@@ -29,7 +29,7 @@ export function SearchClient() {
     setSearchTerm('')
     const newParams = updateSearchParams(searchParams, {
       search: undefined,
-      page: 1
+      page: '1'
     })
     router.push(`/?${newParams}`)
   }
