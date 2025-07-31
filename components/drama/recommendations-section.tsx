@@ -46,7 +46,7 @@ export function RecommendationsSection({ recommendations, maxDisplay = 8 }: Reco
     <div>
       <h2 className="text-2xl font-semibold mb-4">You Might Also Like</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-        {displayRecommendations.map((drama) => (
+        {displayRecommendations.map((drama, index) => (
           <Link
             key={drama.id}
             href={`/${drama.id}`}
@@ -59,8 +59,11 @@ export function RecommendationsSection({ recommendations, maxDisplay = 8 }: Reco
                   alt={drama.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
-                  loading="lazy"
+                  loading={index < 4 ? 'eager' : 'lazy'}
+                  priority={index < 4}
                   sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjZjNmNGY2Ii8+Cjwvc3ZnPgo="
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">

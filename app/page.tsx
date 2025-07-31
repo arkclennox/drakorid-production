@@ -4,7 +4,6 @@ import { Suspense } from 'react'
 import { DramasGridClient } from '@/components/grid-client'
 import { PaginationClient } from '@/components/pagination-client'
 import { FiltersClient } from '@/components/filters-client'
-import { SearchClient } from '@/components/search-client'
 
 import { ITEMS_PER_PAGE } from '@/lib/api/drama-queries'
 import { parseSearchParams } from '@/lib/url-state'
@@ -34,13 +33,7 @@ export default function Page() {
         </p>
       </div>
       
-      {/* Search */}
-      <div className="mb-6">
-        <Suspense fallback={<div>Loading search...</div>}>
-          <SearchClient />
-        </Suspense>
-      </div>
-      
+
       {/* Filters */}
       <div className="mb-6">
         <Suspense fallback={<div>Loading filters...</div>}>

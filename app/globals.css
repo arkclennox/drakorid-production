@@ -63,4 +63,35 @@
   * {
     @apply border-border;
   }
+  
+  body {
+    font-display: swap;
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  img {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 1000px;
+  }
+  
+  /* Critical above-the-fold styles */
+  .grid {
+    contain: layout style;
+  }
+  
+  /* Optimize transitions */
+  .transition-transform {
+    will-change: transform;
+  }
+  
+  .group:hover .transition-transform {
+    transform: scale(1.05);
+  }
+  
+  /* Optimize scrolling */
+  .overflow-y-auto {
+    overscroll-behavior: contain;
+  }
 }

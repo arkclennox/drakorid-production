@@ -68,9 +68,10 @@ export function DramasGridClient({ searchParams, dramaSearchParams }: DramasGrid
 
   return (
     <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
-      {dramas.map((drama) => {
+      {dramas.map((drama, index) => {
         const slug = createSlug(drama.title, drama.id)
         const href = `/${slug}?${stringifySearchParams(searchParams)}`
+        const isPriority = index < 6 // First 6 images get priority loading
         
         return (
           <Link key={drama.id} href={href} className="group">
@@ -82,6 +83,8 @@ export function DramasGridClient({ searchParams, dramaSearchParams }: DramasGrid
                   fill
                   className="object-cover transition-transform group-hover:scale-105"
                   sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, (max-width: 1280px) 16.66vw, 14.28vw"
+                  priority={isPriority}
+                  loading={isPriority ? 'eager' : 'lazy'}
                   placeholder="blur"
                   blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                 />

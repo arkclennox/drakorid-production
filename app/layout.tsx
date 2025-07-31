@@ -70,6 +70,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://nmjuvpujhxmtunkcwkdb.supabase.co" />
+        <link rel="preconnect" href="https://image.tmdb.org" />
+        <link rel="preconnect" href="https://cdn.sanity.io" />
+        <link rel="dns-prefetch" href="https://nmjuvpujhxmtunkcwkdb.supabase.co" />
+        <link rel="dns-prefetch" href="https://image.tmdb.org" />
+        <link rel="dns-prefetch" href="https://cdn.sanity.io" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
+      </head>
       <body
         className={cn(
           'bg-gray-100 font-sans antialiased dark:bg-black dark:text-white',

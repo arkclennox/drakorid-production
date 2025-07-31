@@ -11,9 +11,10 @@ interface PhotoProps {
   height: number
   className?: string
   priority?: boolean
+  sizes?: string
 }
 
-export function Photo({ src, alt, width, height, className, priority = false }: PhotoProps) {
+export function Photo({ src, alt, width, height, className, priority = false, sizes }: PhotoProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -50,9 +51,11 @@ export function Photo({ src, alt, width, height, className, priority = false }: 
         alt={alt}
         width={width}
         height={height}
+        sizes={sizes || `(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw`}
         placeholder="blur"
         blurDataURL={placeholder}
         priority={priority}
+        loading={priority ? 'eager' : 'lazy'}
         onLoad={handleLoad}
         onError={handleError}
         className={cn(
@@ -60,6 +63,10 @@ export function Photo({ src, alt, width, height, className, priority = false }: 
           isLoading ? "opacity-0" : "opacity-100",
           className
         )}
+        style={{
+          objectFit: 'cover',
+          objectPosition: 'center'
+        }}
       />
     </div>
   )
