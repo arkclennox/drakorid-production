@@ -235,32 +235,32 @@ export function DramaDetailClient({ id, searchParams }: DramaDetailClientProps) 
         )}
         
         {/* Episodes Section */}
-        {drama.episodes_data && drama.episodes_data.length > 0 && (
-          <EpisodesSection episodes={drama.episodes_data} />
-        )}
-        
-        {/* Images Gallery */}
-        {drama.images && drama.images.length > 0 && (
-          <ImagesGallery images={drama.images} />
-        )}
-        
-        {/* Videos Section */}
-        {drama.videos && drama.videos.length > 0 && (
-          <VideosSection videos={drama.videos} />
-        )}
-        
-        {/* Keywords Section */}
-        {drama.keywords && drama.keywords.length > 0 && (
-          <KeywordsSection keywords={drama.keywords} />
-        )}
-        
-        {/* External Links */}
-        {drama.external_links && Object.keys(drama.external_links).length > 0 && (
-          <ExternalLinks links={drama.external_links} />
-        )}
-        
-        {/* Recommendations */}
-        <RecommendationsSection dramaId={drama.id} />
+          {drama.seasons && drama.seasons.length > 0 && drama.seasons.some(season => season.episodes && season.episodes.length > 0) && (
+            <EpisodesSection seasons={drama.seasons} />
+          )}
+
+          {/* Images Gallery */}
+          {drama.images && (drama.images.posters?.length > 0 || drama.images.backdrops?.length > 0) && (
+            <ImagesGallery images={drama.images} />
+          )}
+
+          {/* Videos Section */}
+          {drama.videos && drama.videos.length > 0 && (
+            <VideosSection videos={drama.videos} />
+          )}
+
+          {/* Keywords Section */}
+          {drama.keywords && drama.keywords.length > 0 && (
+            <KeywordsSection keywords={drama.keywords} />
+          )}
+
+          {/* External Links */}
+          {drama.external_ids && Object.keys(drama.external_ids).length > 0 && (
+            <ExternalLinks externalIds={drama.external_ids} />
+          )}
+
+          {/* Recommendations */}
+          <RecommendationsSection id={drama.id} />
       </div>
     </div>
   )
