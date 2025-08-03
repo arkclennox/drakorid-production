@@ -20,8 +20,10 @@ export default function Page() {
     page: Number(parsedSearchParams.page) || 1,
     limit: ITEMS_PER_PAGE,
     genre: parsedSearchParams.genre,
+    country: parsedSearchParams.country,
     rating: parsedSearchParams.rtg,
-    year: parsedSearchParams.yr
+    year: parsedSearchParams.yr,
+    sort: parsedSearchParams.sort
   }
 
   return (

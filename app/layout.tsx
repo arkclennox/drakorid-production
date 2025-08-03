@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Filter, FilterFallback } from '@/components/filters';
 import { Search, SearchFallback } from '@/components/search';
 import { Footer } from '@/components/footer';
+import { TopBanner } from '@/components/smart-banner';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
@@ -117,6 +118,12 @@ export default function RootLayout({
                 </Suspense>
               </div>
             </div>
+            
+            {/* Universal Ad Banner */}
+            <div className="w-full bg-white dark:bg-gray-900 py-2 border-b border-gray-200 dark:border-gray-700">
+              <TopBanner className="mx-auto" />
+            </div>
+            
             <div className="flex-1 flex flex-col p-4">{children}</div>
             <Footer />
           </div>

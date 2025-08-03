@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { updateSearchParams } from '@/lib/url-state'
+import { fetchUniqueGenres } from '@/lib/api/drama-queries'
 
 export const COUNTRIES = [
   { value: 'all', label: 'All Countries' },
@@ -23,19 +24,11 @@ export const COUNTRIES = [
   { value: 'uk', label: 'United Kingdom' },
 ]
 
-export const GENRES = [
-  { value: 'all', label: 'All Genres' },
-  { value: 'romance', label: 'Romance' },
-  { value: 'comedy', label: 'Comedy' },
-  { value: 'drama', label: 'Drama' },
-  { value: 'action', label: 'Action' },
-  { value: 'thriller', label: 'Thriller' },
-  { value: 'fantasy', label: 'Fantasy' },
-  { value: 'historical', label: 'Historical' },
-  { value: 'crime', label: 'Crime' },
-  { value: 'mystery', label: 'Mystery' },
-  { value: 'horror', label: 'Horror' },
-]
+// Dynamic genres will be loaded from Supabase
+interface GenreOption {
+  value: string;
+  label: string;
+}
 
 export const YEARS = [
   { value: 'all', label: 'All Years' },
@@ -67,6 +60,34 @@ export function FiltersClient() {
   const [selectedGenre, setSelectedGenre] = useState(searchParams.get('genre') || 'all')
   const [selectedYear, setSelectedYear] = useState(searchParams.get('year') || 'all')
   const [selectedSort, setSelectedSort] = useState(searchParams.get('sort') || 'popularity')
+  const [genres, setGenres] = useState<GenreOption[]>([{ value: 'all', label: 'All Genres' }])
+  const [isLoadingGenres, setIsLoadingGenres] = useState(true)
+
+  // Load genres from Supabase
+  useEffect(() => {
+    const loadGenres = async () => {
+      try {
+        setIsLoadingGenres(true)
+        const uniqueGenres = await fetchUniqueGenres()
+        
+        const genreOptions: GenreOption[] = [
+          { value: 'all', label: 'All Genres' },
+          ...uniqueGenres.map(genre => ({
+            value: genre,
+            label: genre.charAt(0).toUpperCase() + genre.slice(1)
+          }))
+        ]
+        
+        setGenres(genreOptions)
+      } catch (error) {
+        console.error('Error loading genres:', error)
+      } finally {
+        setIsLoadingGenres(false)
+      }
+    }
+    
+    loadGenres()
+  }, [])
 
   useEffect(() => {
     setSelectedCountry(searchParams.get('country') || 'all')
@@ -96,115 +117,5 @@ export function FiltersClient() {
 
   const hasActiveFilters = selectedCountry !== 'all' || selectedGenre !== 'all' || selectedYear !== 'all'
 
-  return (
-    <div className="flex flex-wrap gap-2 items-center">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <FilterIcon className="w-4 h-4" />
-        <span>Filters:</span>
-      </div>
-      
-      {/* Country Filter */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
-            {COUNTRIES.find(c => c.value === selectedCountry)?.label || 'Country'}
-            <ChevronDownIcon className="w-4 h-4 ml-1" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {COUNTRIES.map((country) => (
-            <DropdownMenuItem
-              key={country.value}
-              onClick={() => {
-                setSelectedCountry(country.value)
-                updateFilter('country', country.value)
-              }}
-              className={selectedCountry === country.value ? 'bg-accent' : ''}
-            >
-              {country.label}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Genre Filter */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
-            {GENRES.find(g => g.value === selectedGenre)?.label || 'Genre'}
-            <ChevronDownIcon className="w-4 h-4 ml-1" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {GENRES.map((genre) => (
-            <DropdownMenuItem
-              key={genre.value}
-              onClick={() => {
-                setSelectedGenre(genre.value)
-                updateFilter('genre', genre.value)
-              }}
-              className={selectedGenre === genre.value ? 'bg-accent' : ''}
-            >
-              {genre.label}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Year Filter */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
-            {YEARS.find(y => y.value === selectedYear)?.label || 'Year'}
-            <ChevronDownIcon className="w-4 h-4 ml-1" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {YEARS.map((year) => (
-            <DropdownMenuItem
-              key={year.value}
-              onClick={() => {
-                setSelectedYear(year.value)
-                updateFilter('year', year.value)
-              }}
-              className={selectedYear === year.value ? 'bg-accent' : ''}
-            >
-              {year.label}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Sort Filter */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
-            {SORT_OPTIONS.find(s => s.value === selectedSort)?.label || 'Sort'}
-            <ChevronDownIcon className="w-4 h-4 ml-1" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {SORT_OPTIONS.map((sort) => (
-            <DropdownMenuItem
-              key={sort.value}
-              onClick={() => {
-                setSelectedSort(sort.value)
-                updateFilter('sort', sort.value)
-              }}
-              className={selectedSort === sort.value ? 'bg-accent' : ''}
-            >
-              {sort.label}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Clear Filters */}
-      {hasActiveFilters && (
-        <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-          Clear All
-        </Button>
-      )}
-    </div>
-  )
+  return null
 }

@@ -12,6 +12,7 @@ export interface DramaSearchParams {
   rating?: string;
   status?: string;
   year?: string;
+  sort?: string;
 }
 
 export interface DramaSearchResponse {
@@ -25,8 +26,8 @@ export interface DramaSearchResponse {
 export async function fetchDramasWithPagination(
   searchParams: DramaSearchParams
 ): Promise<DramaSearchResponse> {
-  const { query = '', page = 1, limit = 28, genre, country, rating, status, year } = searchParams;
-  const filters = { genre, country, rating, status, year };
+  const { query = '', page = 1, limit = 28, genre, country, rating, status, year, sort = 'popularity' } = searchParams;
+  const filters = { genre, country, rating, status, year, sort };
   
   try {
     const supabase = getSupabaseClient(false); // Use anon client for reading public data
@@ -43,13 +44,29 @@ export async function fetchDramasWithPagination(
     
     // Apply filters
     if (filters.genre) {
-      queryBuilder = queryBuilder.ilike('genre', `%${filters.genre}%`);
+      // Handle genre filtering - genres are stored as arrays
+      // Decode URL-encoded genre parameter first
+      const decodedGenre = decodeURIComponent(filters.genre.replace(/\+/g, ' '));
+      // Use contains operator to check if the genre array contains the selected genre
+      queryBuilder = queryBuilder.contains('genre', [decodedGenre]);
     }
     if (filters.year) {
       queryBuilder = queryBuilder.eq('year', parseInt(filters.year));
     }
     if (filters.country) {
-      queryBuilder = queryBuilder.eq('country', filters.country);
+      // Map country codes to full names for database query
+      const countryMapping: { [key: string]: string } = {
+        'kr': 'South Korea',
+        'jp': 'Japan', 
+        'cn': 'China',
+        'th': 'Thailand',
+        'tw': 'Taiwan',
+        'us': 'United States',
+        'uk': 'United Kingdom'
+      };
+      
+      const countryName = countryMapping[filters.country] || filters.country;
+      queryBuilder = queryBuilder.eq('country', countryName);
     }
     if (filters.status) {
       queryBuilder = queryBuilder.eq('status', filters.status);
@@ -57,6 +74,26 @@ export async function fetchDramasWithPagination(
     if (filters.rating) {
       const ratingValue = parseFloat(filters.rating);
       queryBuilder = queryBuilder.gte('rating', ratingValue);
+    }
+    
+    // Apply sorting
+    switch (filters.sort) {
+      case 'rating':
+        queryBuilder = queryBuilder.order('rating', { ascending: false });
+        break;
+      case 'newest':
+        queryBuilder = queryBuilder.order('year', { ascending: false });
+        break;
+      case 'oldest':
+        queryBuilder = queryBuilder.order('year', { ascending: true });
+        break;
+      case 'title':
+        queryBuilder = queryBuilder.order('title', { ascending: true });
+        break;
+      case 'popularity':
+      default:
+        queryBuilder = queryBuilder.order('rating', { ascending: false }).order('year', { ascending: false });
+        break;
     }
     
     // Apply pagination
@@ -176,6 +213,49 @@ export async function fetchDramaById(id: string): Promise<Drama | null> {
   }
 }
 
+export async function fetchUniqueGenres(): Promise<string[]> {
+  try {
+    const supabase = getSupabaseClient(false);
+    
+    const { data, error } = await supabase
+      .from('korean_dramas')
+      .select('genre')
+      .not('genre', 'is', null);
+    
+    if (error) {
+      console.error('Error fetching genres:', error);
+      return [];
+    }
+    
+    // Extract unique genres from the data
+    const genreSet = new Set<string>();
+    
+    data?.forEach((item) => {
+      if (item.genre && Array.isArray(item.genre)) {
+        // Handle array of genres - keep original case
+        item.genre.forEach((genre: string) => {
+          if (genre && genre.trim() !== '') {
+            genreSet.add(genre.trim());
+          }
+        });
+      } else if (typeof item.genre === 'string' && item.genre.trim() !== '') {
+        // Handle string genres (comma-separated or single)
+        const genres = item.genre.split(',').map((g: string) => g.trim());
+        genres.forEach((genre: string) => {
+          if (genre && genre !== '') {
+            genreSet.add(genre);
+          }
+        });
+      }
+    });
+    
+    return Array.from(genreSet).sort();
+  } catch (error) {
+    console.error('Error fetching unique genres:', error);
+    return [];
+  }
+}
+
 export function buildSearchUrl(searchParams: DramaSearchParams): string {
   const params = new URLSearchParams();
   
@@ -184,6 +264,6 @@ export function buildSearchUrl(searchParams: DramaSearchParams): string {
       params.append(key, value.toString());
     }
   });
-  
+
   return params.toString();
 }
